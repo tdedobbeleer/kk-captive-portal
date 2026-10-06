@@ -1,39 +1,45 @@
-# --- STAGE 1: Install Dependencies ---
-FROM node:18-alpine AS deps
+# --- STAGE 1: Base Setup & Core Dependencies ---
+FROM node:18-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable pnpm
+
+# --- STAGE 2: Install Dependencies ---
+FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy lock files to optimize caching
-COPY package.json package-lock.json ./
-RUN npm ci
+# Copy lock and configuration files to maximize build cache performance
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install --frozen-lockfile
 
-# --- STAGE 2: Build the Application ---
-FROM node:18-alpine AS builder
+# --- STAGE 3: Build the Application ---
+FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set environment variables needed *during* build time
+# Set environment variables required *during* Next.js build compilation
 ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
 ARG NEXT_PUBLIC_GOOGLE_REDIRECT_URI
 ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
 ENV NEXT_PUBLIC_GOOGLE_REDIRECT_URI=$NEXT_PUBLIC_GOOGLE_REDIRECT_URI
 
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+RUN pnpm run build
 
-# --- STAGE 3: Production Runner ---
-FROM node:18-alpine AS runner
+# --- STAGE 4: Production Runner ---
+FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Create a non-root system user for security
+# Establish a non-root system user for environment hardening
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy essential runtime files from the builder
+# Safely carry forward structural build assets
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
@@ -44,4 +50,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+# Next.js standalone output bundles its own minimal Node backend launcher
 CMD ["node", "server.js"]
