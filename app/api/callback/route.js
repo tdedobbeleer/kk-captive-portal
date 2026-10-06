@@ -4,9 +4,9 @@ import axios from 'axios';
 import https from 'https';
 
 const oauth2Client = new OAuth2Client(
-  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+  process.env.PUBLIC_GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI
+  process.env.PUBLIC_GOOGLE_REDIRECT_URI
 );
 
 const unifiClient = axios.create({
@@ -29,7 +29,7 @@ export async function GET(request) {
     const { tokens } = await oauth2Client.getToken(code);
     const ticket = await oauth2Client.verifyIdToken({
       idToken: tokens.id_token,
-      audience: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+      audience: process.env.PUBLIC_GOOGLE_CLIENT_ID
     });
     const payload = ticket.getPayload();
 
