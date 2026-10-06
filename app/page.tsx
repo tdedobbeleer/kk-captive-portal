@@ -1,69 +1,73 @@
-import Image from "next/image";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 
-export default function Home() {
+export default async function LandingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ id?: string; ap?: string }>;
+}) {
+  // Capture parameters automatically passed by the Ubiquiti AP
+  const { id: userMac } = await searchParams;
+
+  if (!userMac) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-xl border border-gray-100">
+          <p className="text-red-500 font-semibold">Network Signature Missing</p>
+          <p className="text-sm text-gray-500 mt-2">Please disconnect and reconnect to the Wi-Fi network.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Construct the Google OAuth login link
+  const rootUrl = 'https://google.com';
+  const options = {
+    redirect_uri: process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI ?? '',
+    client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '',
+    access_type: 'online',
+    response_type: 'code',
+    prompt: 'select_account',
+    scope: ['openid', 'email', 'profile'].join(' '),
+    // We pass the user's MAC address inside the 'state' parameter to retrieve it later
+    state: userMac, 
+  };
+
+  const qs = new URLSearchParams(options).toString();
+  const googleAuthUrl = `${rootUrl}?${qs}`;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-gray-50 px-4">
+      <div className="w-full max-w-md transform rounded-2xl bg-white p-10 text-center shadow-2xl transition-all border border-gray-100/50">
+        
+        {/* Organization Branding Placeholder */}
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 font-bold text-2xl">
+          ♥
+        </div>
+
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+          Staff & Volunteer Wi-Fi
+        </h1>
+        <p className="mt-3 text-sm text-gray-500 leading-relaxed">
+          Welcome! Please authenticate using your official organization Google Workspace account to securely log onto the network.
+        </p>
+
+        <div className="mt-8">
+          <a
+            href={googleAuthUrl}
+            className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-gray-900 px-5 py-3.5 text-base font-medium text-white shadow-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-all active:scale-[0.98]"
+          >
+            <FontAwesomeIcon icon={faGoogle} className="h-5 w-5 text-red-400" />
+            Sign in with Google
+          </a>
+        </div>
+
+        <div className="mt-8 border-t border-gray-100 pt-6">
+          <p className="text-xs text-gray-400">
+            By signing in, your device (<span className="font-mono text-gray-500">{userMac}</span>) will be whitelisted for 24 hours.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
