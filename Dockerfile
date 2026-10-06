@@ -1,17 +1,14 @@
-# --- STAGE 1: Base Setup & Core Dependencies ---
-FROM node:18-alpine AS base
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable pnpm
-
-# --- STAGE 2: Install Dependencies ---
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
+# --- STAGE 1: Official pnpm Base Image with Custom Node Version ---
+FROM ghcr.io/pnpm/pnpm:11 AS base
+# Pin your Node version using pnpm's official runtime management
+RUN pnpm runtime set node 24 -g
 WORKDIR /app
 
-# Copy lock and configuration files to maximize build cache performance
+# --- STAGE 2: Install Dependencies using BuildKit Cache Mounts ---
+FROM base AS deps
 COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --frozen-lockfile
+# Utilize the official BuildKit cache mount syntax to share the pnpm store across builds safely
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 # --- STAGE 3: Build the Application ---
 FROM base AS builder
@@ -19,7 +16,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set environment variables required *during* Next.js build compilation
+# Set target environment variables required during Next.js build compilation
 ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
 ARG NEXT_PUBLIC_GOOGLE_REDIRECT_URI
 ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
@@ -35,11 +32,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Establish a non-root system user for environment hardening
+# Establish a non-root system user for environment security
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Safely carry forward structural build assets
+# Safely copy forward minimal compiled structural assets from the builder stage
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
@@ -50,5 +47,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Next.js standalone output bundles its own minimal Node backend launcher
+# Next.js standalone engine executes via its own optimized server wrapper
 CMD ["node", "server.js"]
