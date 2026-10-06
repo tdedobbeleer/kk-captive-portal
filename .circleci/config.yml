@@ -1,0 +1,21 @@
+workflows:
+  build:
+    jobs:
+      - build_and_release:
+          filters:
+            branches:
+              only:
+                - main
+
+jobs:
+  "build_and_release":
+    working_directory: ~/repo
+    docker:
+      - image: cimg/base:2026.10
+    steps:
+      - setup_remote_docker:
+          version: 29.8.1
+      - checkout
+      - run:
+          name: docker-deploy
+          command: sh ./docker-release.sh
