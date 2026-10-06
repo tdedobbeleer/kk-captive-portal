@@ -1,12 +1,12 @@
 # --- STAGE 1: Official pnpm Base Image with Custom Node Version ---
-FROM ghcr.io/pnpm/pnpm:11 AS base
+FROM ghcr.io/pnpm/pnpm:12 AS base
 # Pin your Node version using pnpm's official runtime management
 RUN pnpm runtime set node 24 -g
+COPY . /app
 WORKDIR /app
 
 # --- STAGE 2: Install Dependencies using BuildKit Cache Mounts ---
 FROM base AS deps
-COPY package.json pnpm-lock.yaml* ./
 # Utilize the official BuildKit cache mount syntax to share the pnpm store across builds safely
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
