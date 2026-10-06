@@ -3,23 +3,10 @@ version: 2.1
 jobs:
   build-and-release:
     working_directory: ~/repo
-    docker:
-      - image: cimg/base:stable
+    machine:
+      image: ubuntu-2204:current
+    resource_class: arm.medium
     steps:
-      - setup_remote_docker:
-          version: 20.10.18 # Use a modern Docker version supporting buildx
-          docker_layer_caching: true
-      - run:
-          name: Set up Docker Buildx
-          command: |
-            # Enable experimental/BuildKit features if needed
-            export DOCKER_CLI_EXPERIMENTAL=enabled
-
-            # Create and switch to a new buildx builder instance
-            docker buildx create --name multiarch-builder --driver docker-container --use
-
-            # Inspect the builder to verify it's running
-            docker buildx inspect --bootstrap
       - checkout
       - run:
           name: docker-deploy
