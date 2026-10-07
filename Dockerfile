@@ -27,8 +27,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Establish a non-root system user for environment security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN groupadd --system --gid 1001 nodejs
+RUN useradd --system --uid 1001 nextjs
 
 # Safely copy forward minimal compiled structural assets from the builder stage
 COPY --from=builder /app/public ./public
