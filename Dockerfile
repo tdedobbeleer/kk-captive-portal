@@ -19,16 +19,17 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm run build
 
-# --- STAGE 4: Production Runner ---
-FROM base AS runner
+# --- STAGE 4: Production Runner (official Node 24 Alpine) ---
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Establish a non-root system user for environment security
-RUN groupadd --system --gid 1001 nodejs && \
-    useradd --system --uid 1001 --gid nodejs --home-dir /app --no-create-home --shell /usr/sbin/nologin nextjs && \
+# NOTE: Alpine uses BusyBox addgroup/adduser (groupadd/useradd do not exist here)
+RUN addgroup -S --gid 1001 nodejs && \
+    adduser -S --uid 1001 -G nodejs --home /app -H -s /sbin/nologin nextjs && \
     chown -R nextjs:nodejs /app
 
 # Safely copy forward minimal compiled structural assets from the builder stage
