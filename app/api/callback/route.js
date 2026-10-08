@@ -12,6 +12,7 @@ const oauth2Client = new OAuth2Client(
 const unifiClient = axios.create({
   baseURL: process.env.UNIFI_CONTROLLER_URL,
   withCredentials: true,
+  headers: { 'X-API-Key': process.env.UNIFI_API_KEY },
   httpsAgent: new https.Agent({ rejectUnauthorized: false })
 });
 
@@ -41,22 +42,7 @@ export async function GET(request) {
       );
     }
 
-    // 3. Connect and Auth inside Ubiquiti Controller
-    let loginUrl = '/api/login';
-    try {
-      await unifiClient.post('/api/auth/login', { 
-        username: process.env.UNIFI_USER, 
-        password: process.env.UNIFI_PASSWORD 
-      });
-      loginUrl = '/api/auth/login';
-    } catch {
-      await unifiClient.post('/api/login', { 
-        username: process.env.UNIFI_USER, 
-        password: process.env.UNIFI_PASSWORD 
-      });
-    }
-
-    // Authorize device on Ubiquiti
+    // 3. Authorize device on Ubiquiti via API key header
     await unifiClient.post('/api/s/default/cmd/stamgr', {
       cmd: 'authorize-guest',
       mac: userMac.toLowerCase(),
