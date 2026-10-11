@@ -3,7 +3,7 @@
     "title": "Wi-Fi voor medewerkers & vrijwilligers",
     "welcome": "Welkom! Meld je aan met je officiële Google Workspace-account om veilig op het netwerk in te loggen.",
     "signIn": "Aanmelden met Google",
-    "whitelisted": "Door aan te melden wordt je apparaat ({mac}) op de witte lijst geplaatst.",
+    "whitelisted": "Door aan te melden wordt je apparaat ({mac}) op de whitelist geplaatst.",
     "missingTitle": "Netwerksignatuur ontbreekt",
     "missingDescription": "Gelieve de Wi-Fi-verbinding te verbreken en opnieuw te verbinden."
   },
