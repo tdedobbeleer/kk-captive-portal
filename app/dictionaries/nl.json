@@ -1,0 +1,21 @@
+{
+  "landing": {
+    "title": "Wi-Fi voor medewerkers & vrijwilligers",
+    "welcome": "Welkom! Meld je aan met je officiële Google Workspace-account om veilig op het netwerk in te loggen.",
+    "signIn": "Aanmelden met Google",
+    "whitelisted": "Door aan te melden wordt je apparaat ({mac}) op de witte lijst geplaatst.",
+    "missingTitle": "Netwerksignatuur ontbreekt",
+    "missingDescription": "Gelieve de Wi-Fi-verbinding te verbreken en opnieuw te verbinden."
+  },
+  "auth": {
+    "missingSignature": "Netwerksignatuur ontbreekt.",
+    "notConfigured": "OAuth is niet geconfigureerd."
+  },
+  "callback": {
+    "payloadMissing": "Authenticatiegegevens ontbreken.",
+    "accessDenied": "Toegang geweigerd: Enkel Koning Kevin accounts hebben toegang.",
+    "successTitle": "Verbinding gelukt!",
+    "successMessage": "Je bent nu verbonden met het internet. Veel speelplezier.",
+    "internalError": "Intern systeemverbindingsprobleem."
+  }
+}

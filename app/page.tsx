@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
+import { getDictionary } from './dictionaries';
 
 export default async function LandingPage({
   searchParams,
@@ -8,13 +9,14 @@ export default async function LandingPage({
 }) {
   // Capture parameters automatically passed by the Ubiquiti AP
   const { id: userMac } = await searchParams;
+  const dict = await getDictionary();
 
   if (!userMac) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
         <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-xl border border-gray-100">
-          <p className="text-red-500 font-semibold">Network Signature Missing</p>
-          <p className="text-sm text-gray-500 mt-2">Please disconnect and reconnect to the Wi-Fi network.</p>
+          <p className="text-red-500 font-semibold">{dict.landing.missingTitle}</p>
+          <p className="text-sm text-gray-500 mt-2">{dict.landing.missingDescription}</p>
         </div>
       </div>
     );
@@ -22,21 +24,24 @@ export default async function LandingPage({
 
   // The backend auth endpoint builds the Google OAuth URL and redirects the client
   const authUrl = `/api/auth?id=${encodeURIComponent(userMac)}`;
+  const [whitelistedBefore, whitelistedAfter] = dict.landing.whitelisted.split('{mac}');
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-gray-50 px-4">
       <div className="w-full max-w-md transform rounded-2xl bg-white p-10 text-center shadow-2xl transition-all border border-gray-100/50">
 
-        {/* Organization Branding Placeholder */}
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 font-bold text-2xl">
-          ♥
-        </div>
+        {/* Organization Branding */}
+        <img
+          src="/logo.png"
+          alt="Koning Kevin"
+          className="mx-auto mb-6 h-24 w-24 rounded-2xl object-cover shadow-lg shadow-blue-500/20"
+        />
 
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-          Staff & Volunteer Wi-Fi
+          {dict.landing.title}
         </h1>
         <p className="mt-3 text-sm text-gray-500 leading-relaxed">
-          Welcome! Please authenticate using your official organization Google Workspace account to securely log onto the network.
+          {dict.landing.welcome}
         </p>
 
         <div className="mt-8">
@@ -45,13 +50,15 @@ export default async function LandingPage({
             className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-gray-900 px-5 py-3.5 text-base font-medium text-white shadow-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-all active:scale-[0.98]"
           >
             <FontAwesomeIcon icon={faGoogle} className="h-5 w-5 text-red-400" />
-            Sign in with Google
+            {dict.landing.signIn}
           </a>
         </div>
 
         <div className="mt-8 border-t border-gray-100 pt-6">
           <p className="text-xs text-gray-400">
-            By signing in, your device (<span className="font-mono text-gray-500">{userMac}</span>) will be whitelisted for 24 hours.
+            {whitelistedBefore}
+            <span className="font-mono text-gray-500">{userMac}</span>
+            {whitelistedAfter}
           </p>
         </div>
       </div>

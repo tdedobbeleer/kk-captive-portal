@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { OAuth2Client } from 'google-auth-library';
 import axios from 'axios';
 import https from 'https';
+import { getDictionary } from '../../dictionaries';
 
 const oauth2Client = new OAuth2Client(
   process.env.PUBLIC_GOOGLE_CLIENT_ID,
@@ -20,9 +21,10 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const userMac = searchParams.get('state'); // Extracted from the state token we sent
+  const dict = await getDictionary();
 
   if (!code || !userMac) {
-    return NextResponse.json({ error: 'Authentication payload missing.' }, { status: 400 });
+    return NextResponse.json({ error: dict.callback.payloadMissing }, { status: 400 });
   }
 
   try {
@@ -37,7 +39,7 @@ export async function GET(request) {
     // 2. Domain Check
     if (!payload.email.endsWith(`@${process.env.ALLOWED_DOMAIN}`)) {
       return new NextResponse(
-        `<h1 style="color:red; text-align:center; margin-top:10%;">Access Denied: Corporate Accounts Only.</h1>`,
+        `<h1 style="color:red; text-align:center; margin-top:10%;">${dict.callback.accessDenied}</h1>`,
         { headers: { 'Content-Type': 'text/html' }, status: 403 }
       );
     }
@@ -53,8 +55,8 @@ export async function GET(request) {
     return new NextResponse(`
       <body style="font-family:sans-serif; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#f0fdf4; margin:0;">
         <div style="text-align:center; padding:2rem; background:white; border-radius:1rem; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);">
-          <h2 style="color:#16a34a; margin:0 0 0.5rem 0;">Connection Successful!</h2>
-          <p style="color:#4b5563; margin:0;">You are now connected to the internet.</p>
+          <h2 style="color:#16a34a; margin:0 0 0.5rem 0;">${dict.callback.successTitle}</h2>
+          <p style="color:#4b5563; margin:0;">${dict.callback.successMessage}</p>
         </div>
         <script>setTimeout(function(){ window.location.href = "https://google.com"; }, 2500);</script>
       </body>
@@ -62,6 +64,6 @@ export async function GET(request) {
 
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: 'Internal system connection issue.' }, { status: 500 });
+    return NextResponse.json({ error: dict.callback.internalError }, { status: 500 });
   }
 }
